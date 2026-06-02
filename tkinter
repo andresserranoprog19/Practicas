@@ -1,0 +1,977 @@
+# Documentación de Tkinter
+
+---
+
+## Índice
+
+1. [Para qué sirve / se usa tkinter](#1-para-qué-sirve--se-usa-tkinter)
+2. [Widgets básicos](#2-widgets-básicos)
+   - [Frame](#frame)
+   - [Label](#label)
+   - [Button](#button)
+   - [Messagebox](#messagebox)
+   - [Entry](#entry)
+   - [Checkbutton](#checkbutton)
+   - [Radiobutton](#radiobutton)
+   - [Scale](#scale)
+   - [Spinbox](#spinbox)
+   - [Combobox](#combobox)
+   - [Progressbar](#progressbar)
+   - [Text](#text)
+   - [Listbox](#listbox)
+   - [Scrollbar](#scrollbar)
+   - [Toplevel](#toplevel)
+3. [Gestores de Geometría](#3-gestores-de-geometría)
+4. [Orientación a Objetos](#4-orientación-a-objetos)
+
+---
+
+## 1. Para qué sirve / se usa tkinter
+
+Tkinter es una herramienta de interfaces gráficas que viene incluida en Python y que te permite crear ventanas con elementos visuales como botones, campos de texto, menús e imágenes, con los que el usuario puede interactuar usando el ratón y el teclado.
+
+Con Tkinter, ese mismo programa puede tener una ventana con botones, campos donde escribir, listas para elegir opciones y mensajes que aparecen al pulsar un botón, de forma que cualquier persona pueda usarlo sin saber nada de programación.
+
+Para usarlo no hace falta instalar nada extra:
+
+```python
+import tkinter as tk
+```
+
+---
+
+## 2. Widgets básicos
+
+### Frame
+
+Frame es un widget que funciona como un contenedor que sirve para agrupar y organizar de mejor manera otros widgets. Es esencial para la creación de cualquier interfaz gráfica compleja en tkinter.
+
+**Ejemplo básico:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+frame = tk.Frame(app)        # contenedor hijo de la ventana principal
+frame.pack()
+
+tk.Button(frame, text="Dentro del frame").pack()  # widget hijo del frame
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+frame.pack_propagate(False)   # desactiva el ajuste automático de tamaño (con pack)
+frame.grid_propagate(False)   # lo mismo para grid
+frame.winfo_width()           # ancho actual en píxeles
+frame.winfo_height()          # alto actual en píxeles
+frame.winfo_children()        # lista de widgets hijos
+frame.configure(bg="red")     # cambiar opciones después de crearlo
+frame.destroy()               # elimina el frame y todos sus hijos
+```
+
+**Argumentos:**
+
+```python
+tk.Frame(
+    app,
+    bg="white",                  # color de fondo del frame
+    width=300,                   # ancho en píxeles (necesita propagate=False para respetarse)
+    height=200,                  # alto en píxeles  (necesita propagate=False para respetarse)
+    bd=2,                        # grosor del borde en píxeles
+    relief="flat",               # borde: "flat", "raised", "sunken", "groove", "ridge", "solid"
+    cursor="arrow",              # cursor del ratón al pasar por encima
+    padx=10,                     # espacio interior horizontal
+    pady=10,                     # espacio interior vertical
+    highlightthickness=1,        # grosor del borde de enfoque
+    highlightbackground="gray",  # color del borde de enfoque sin foco
+    highlightcolor="blue",       # color del borde de enfoque con foco
+)
+```
+
+Sin frame estás obligado a usar el mismo gestor de geometría en toda la interfaz. Frame permite utilizar dentro del contenedor un gestor diferente del que se utilice fuera de este.
+
+**Ejemplo con tres frames (cabecera, contenido y pie):**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+frame_top    = tk.Frame(app, bg="lightblue", height=60)
+frame_center = tk.Frame(app, bg="white")
+frame_bottom = tk.Frame(app, bg="lightgray", height=40)
+
+frame_top.pack(fill="x")
+frame_center.pack(fill="both", expand=True)
+frame_bottom.pack(fill="x")
+
+app.mainloop()
+```
+
+También se puede utilizar este widget para crear varias "páginas" que se puedan ocultar y mostrar:
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+app.title("Cambio de páginas")
+app.geometry("400x300")
+
+def mostrar(frame):
+    frame.tkraise()  # trae este frame al frente
+
+# Frames (todos los frames)
+frame1 = tk.Frame(app)
+frame2 = tk.Frame(app)
+
+for f in (frame1, frame2):
+    f.place(relwidth=1, relheight=1)  # para que todos los frames ocupen el mismo espacio
+
+# Contenido de cada página
+tk.Label(frame1, text="Página 1").pack()
+tk.Label(frame2, text="Página 2").pack()
+
+# Para navegar entre frames
+tk.Button(frame2, text="Página 1", command=lambda: mostrar(frame1)).pack()
+tk.Button(frame1, text="Página 2", command=lambda: mostrar(frame2)).pack()
+
+mostrar(frame1)  # muestra la primera página al arrancar
+
+app.mainloop()
+```
+
+---
+
+### Label
+
+El widget Label es usado para mostrar texto o imágenes estáticas en una interfaz gráfica de usuario. Su principal función es mostrar información al usuario como títulos, mensajes o etiquetas descriptivas sin permitir que el usuario modifique dicha información directamente.
+
+Label no tiene métodos propios, simplemente usa los métodos universales que ofrece tkinter.
+
+**Sintaxis básica:**
+
+```python
+label = tk.Label(parent, opciones…)
+```
+
+**Opciones:**
+
+```python
+tk.Label(
+    parent,
+    text="Texto a mostrar",          # texto estático
+    textvariable=var,                 # obtiene el texto de un tk.StringVar()
+    image=imagen,                     # tk.PhotoImage (PNG, GIF, PPM, PGM)
+    anchor="center",                  # alineación: "n", "s", "e", "w", "center"...
+    font=("Arial", 12),               # fuente y tamaño
+    fg="black",                       # color del texto
+    bg="white",                       # color de fondo
+    padx=10,                          # padding horizontal
+    pady=5,                           # padding vertical
+    compound="left",                  # posición imagen respecto al texto: left, right, top, bottom, center, none
+)
+```
+
+**Ejemplo completo:**
+
+```python
+import tkinter as tk
+
+# Contenedor para meter los widgets
+app = tk.Tk()
+
+# Sintaxis Label para mostrar texto
+texto = tk.Label(app, text="Hola Mundo!")
+texto.pack()
+
+# Variable con la imagen que se mostrará
+img = tk.PhotoImage(file="python_logo.png")
+
+# Sintaxis Label para mostrar imagen
+imagen = tk.Label(app, text="Label imagen", image=img, compound="bottom")
+imagen.image = img
+imagen.pack()
+
+# Bucle principal de la aplicación
+app.mainloop()
+```
+
+---
+
+### Button
+
+Button es un widget que permite al usuario realizar una acción al clicar en él. Suele ser usado para lanzar funciones o métodos.
+
+**Sintaxis básica:**
+
+```python
+boton = tk.Button(parent, text="texto", command=funcion)
+```
+
+**Opciones específicas:**
+
+```python
+tk.Button(
+    parent,
+    text="Clic aquí",
+    command=lambda: mi_funcion(),    # lambda evita que se ejecute al crear el botón
+    activebackground="lightblue",    # color de fondo al hacer clic
+    activeforeground="white",        # color del texto al hacer clic
+    overrelief="raised",             # borde al pasar cursor: flat, raised, sunken, groove, ridge, solid
+    relief="flat",                   # borde siempre visible (mismos estados que overrelief)
+    state="normal",                  # "normal", "active" o "disabled"
+    default="normal",                # marca el botón principal por defecto
+)
+```
+
+**Estados de `state`:**
+- `normal` — estado predeterminado, responde a clics usando `fg` y `bg`.
+- `active` — se activa automáticamente al pasar el cursor, usando `activeforeground` y `activebackground`.
+- `disabled` — completamente insensible a eventos. Usa `disabledforeground` y `background`.
+
+**Métodos exclusivos:**
+
+```python
+boton.invoke()   # ejecuta el command por código, igual que si el usuario hubiera hecho clic
+boton.flash()    # hace parpadear el botón alternando background y activebackground
+```
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+app.title("Demostración state y default")
+
+# Función que usaremos en los tres botones
+def accion(nombre):
+    print(f"Pulsado: {nombre}")
+
+# Botón deshabilitado
+btn_dis = tk.Button(app, text="Deshabilitado", state="disabled", command=lambda: accion("deshabilitado"))
+btn_dis.pack()
+
+# Botón normal (sin destacar)
+btn_cancel = tk.Button(app, text="Cancelar", default="normal", command=lambda: accion("cancelar"))
+btn_cancel.pack(side="left", pady=10, padx=10)
+
+# Botón por defecto (con borde extra)
+btn_ok = tk.Button(app, text="Aceptar", default="active", command=lambda: accion("aceptar"))
+btn_ok.pack(side="right", pady=10, padx=10)
+
+app.mainloop()
+```
+
+---
+
+### Messagebox
+
+Messagebox es un módulo de diálogos de tkinter que se usa para mostrar mensajes en ventanas emergentes. Bloquea la ejecución de la aplicación hasta que el usuario cierra la ventana.
+
+```python
+from tkinter import messagebox
+```
+
+Ofrece dos tipos de funciones: **mensajes unidireccionales** y **preguntas con respuesta**.
+
+**Mensajes unidireccionales** (solo informan, no necesitan respuesta):
+
+```python
+from tkinter import messagebox
+
+# Sintaxis: messagebox.metodo("titulo", "mensaje")
+messagebox.showinfo("Titulo informativo", "showinfo")
+messagebox.showwarning("Título advertencia", "showwarning")
+messagebox.showerror("Título error", "showerror")
+```
+
+**Preguntas con respuesta** (devuelven un valor según la elección del usuario):
+
+```python
+# askquestion → devuelve string "yes" o "no"
+res = messagebox.askquestion("Askquestion", "¿Continuar?")
+if res == "yes":
+    print("Sí")
+else:
+    print("No")
+
+# askyesno → devuelve booleano True/False
+res = messagebox.askyesno("Askyesno", "¿Continuar?")
+if res:
+    print("Sí")
+else:
+    print("No")
+
+# askyesnocancel → devuelve True, False o None
+res = messagebox.askyesnocancel("Askyesnocancel", "¿Guardar antes de salir?")
+if res is True:
+    print("Guardar y salir")
+elif res is False:
+    print("Salir sin guardar")
+else:
+    print("No salir")
+
+# askokcancel → pregunta si seguir o cancelar
+res = messagebox.askokcancel("Askokcancel", "¿Ejecutar el proceso?")
+if res:
+    print("OK, ejecutando")
+else:
+    print("Cancelado")
+
+# askretrycancel → se usa en situaciones de error
+res = messagebox.askretrycancel("Askretrycancel", "No se pudo conectar. ¿Reintentar?")
+if res:
+    print("Reintentando...")
+else:
+    print("Cancelado")
+```
+
+---
+
+### Entry
+
+Entry es un widget que permite al usuario ingresar o editar texto en una sola línea. Funciona como un campo de texto normal con cursor intermitente.
+
+**Sintaxis básica:**
+
+```python
+entry = tk.Entry(parent, opciones...)
+```
+
+**Opciones propias:**
+
+```python
+tk.Entry(
+    parent,
+    show="*",     # oculta los caracteres escritos (útil para contraseñas)
+    width=30,     # ancho del campo en caracteres (por defecto 20)
+)
+```
+
+**Métodos:**
+
+```python
+entry.get()                  # devuelve el texto actual del Entry
+entry.insert(0, "texto")     # inserta texto en la posición indicada
+entry.delete(0, tk.END)      # elimina los caracteres del rango indicado
+```
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+def saludar():
+    nombre = entry.get()
+    label.config(text=f"Hola, {nombre}!")
+
+def limpiar():
+    entry.delete(0, tk.END)
+    label.config(text="")
+
+app = tk.Tk()
+
+entry = tk.Entry(app, width=25)
+entry.pack(pady=5)
+
+tk.Button(app, text="Saludar",  command=saludar).pack()
+tk.Button(app, text="Limpiar",  command=limpiar).pack()
+
+label = tk.Label(app, text="")
+label.pack(pady=5)
+
+app.mainloop()
+```
+
+---
+
+### Checkbutton
+
+Checkbutton es un widget que permite marcar una casilla con valores binarios (marcado / no marcado). Permite activar o desactivar una opción de forma independiente.
+
+Requiere una **variable de control** para funcionar:
+
+```python
+var_bool = tk.BooleanVar(value=True)   # guarda True / False
+var_int  = tk.IntVar(value=0)          # guarda 1 / 0
+var_str  = tk.StringVar()              # útil con onvalue/offvalue personalizados
+
+cb = tk.Checkbutton(root, variable=var_str, onvalue="sí", offvalue="no")
+```
+
+**Estructura básica:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+variable_control = tk.BooleanVar()   # variable de control
+
+# cb es el nombre que se le ha asignado al objeto checkbutton
+cb = tk.Checkbutton(app, text="Sin marcar", variable=variable_control)
+cb.pack()
+
+variable_control2 = tk.BooleanVar(value=True)   # variable de control 2
+
+cb2 = tk.Checkbutton(app, text="Marcado", variable=variable_control2)
+cb2.pack()
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+cb.select()                         # marca la casilla
+cb.deselect()                       # desmarca la casilla
+cb.toggle()                         # invierte el estado actual
+cb.invoke()                         # simula un clic (ejecuta command y cambia estado)
+cb.flash()                          # efecto visual de parpadeo
+cb.configure(state="disabled")      # deshabilita
+cb.configure(state="normal")        # rehabilita
+```
+
+**Argumentos:**
+
+```python
+tk.Checkbutton(
+    app,
+    text="Acepto los términos",      # texto visible
+    variable=var,                    # variable vinculada (BooleanVar, IntVar, StringVar)
+    onvalue=True,                    # valor cuando está marcado
+    offvalue=False,                  # valor cuando no está marcado
+    command=mi_funcion,              # función al cambiar estado
+    selectcolor="blue",              # color del cuadro al marcar
+    indicatoron=True,                # False → se convierte en botón toggle sin cuadro
+    activebackground="lightgray",    # color de fondo al hacer clic
+    activeforeground="black",        # color del texto al hacer clic
+    disabledforeground="gray",       # color del texto cuando state="disabled"
+    wraplength=200,                  # ancho máximo en px antes de salto de línea
+)
+```
+
+---
+
+### Radiobutton
+
+Radiobutton permite elegir una opción de entre varias. Todos los botones del mismo grupo comparten la **misma variable**.
+
+**Estructura básica:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+var = tk.StringVar(value="1")   # este value marca por defecto el botón que tenga ese valor
+
+boton1 = tk.Radiobutton(app, text="1", variable=var, value="1")
+boton2 = tk.Radiobutton(app, text="2", variable=var, value="2")
+boton3 = tk.Radiobutton(app, text="3", variable=var, value="3")
+
+boton1.pack()
+boton2.pack()
+boton3.pack()
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+rb.select()                         # selecciona este botón (sin ejecutar command)
+rb.deselect()                       # deselecciona
+rb.invoke()                         # selecciona Y ejecuta command
+rb.flash()                          # efecto visual de parpadeo
+rb.configure(state="disabled")      # deshabilita
+
+var.get()                           # lee cuál opción está seleccionada
+var.set("2")                        # cambia la selección por código
+```
+
+**Argumentos:**
+
+```python
+tk.Radiobutton(
+    app,
+    text="Opción A",                 # texto visible
+    variable=var,                    # variable COMPARTIDA por todo el grupo
+    value="a",                       # valor que toma la variable si se selecciona este
+    command=mi_funcion,              # función al seleccionarlo
+    selectcolor="blue",              # color del círculo al seleccionar
+    indicatoron=True,                # False → botón de selección sin círculo
+    activebackground="lightgray",    # color de fondo al hacer clic
+    activeforeground="black",        # color del texto al hacer clic
+    disabledforeground="gray",       # color del texto cuando state="disabled"
+    wraplength=200,                  # ancho máximo en px antes de salto de línea
+)
+```
+
+---
+
+### Scale
+
+Scale es un widget que permite mover un deslizador para marcar un valor numérico dentro de un rango predefinido.
+
+**Estructura básica:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+var1 = tk.IntVar(value=25)
+var2 = tk.IntVar(value=50)
+var3 = tk.IntVar(value=75)
+
+scale1 = tk.Scale(app, variable=var1, from_=0, to=100, orient="horizontal")
+scale2 = tk.Scale(app, variable=var2, from_=0, to=100, orient="horizontal")
+scale3 = tk.Scale(app, variable=var3, from_=0, to=100, orient="horizontal")
+
+scale1.pack()
+scale2.pack()
+scale3.pack()
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+scale.get()                         # lee el valor actual
+scale.set(60)                       # cambia el valor por código
+scale.configure(state="disabled")   # deshabilita
+scale.configure(state="normal")     # rehabilita
+```
+
+**Argumentos:**
+
+```python
+tk.Scale(
+    app,
+    variable=var,                    # variable vinculada (IntVar o DoubleVar)
+    from_=0,                         # valor mínimo (from_ porque from es palabra reservada)
+    to=100,                          # valor máximo
+    orient="horizontal",             # "horizontal" o "vertical"
+    resolution=1,                    # incremento mínimo entre valores
+    tickinterval=25,                 # cada cuánto mostrar marcas numéricas (0 = sin marcas)
+    length=300,                      # longitud total del widget en píxeles
+    showvalue=True,                  # mostrar el valor actual encima del cursor
+    label="Volumen",                 # etiqueta de texto encima del scale
+    command=mi_funcion,              # función al mover — recibe el valor como string: def f(v): ...
+    sliderlength=20,                 # tamaño del cursor deslizante en píxeles
+    width=15,                        # grosor de la barra (no la longitud)
+    digits=1,                        # dígitos significativos mostrados
+    troughcolor="lightgray",         # color del canal por donde desliza el cursor
+)
+```
+
+---
+
+### Spinbox
+
+El Spinbox es un widget con un campo de entrada con flechas arriba/abajo para seleccionar un valor dentro de un rango o lista de opciones.
+
+**Estructura básica:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+var = tk.IntVar(value=5)   # valor por defecto
+
+spinbox = tk.Spinbox(app, from_=0, to=10, textvariable=var)
+spinbox.pack()
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+spinbox.get()                        # lee el valor actual como string
+spinbox.set(5)                       # cambia el valor (solo en ttk.Spinbox)
+spinbox.delete(0, "end")             # borra el contenido
+spinbox.insert(0, "valor")           # inserta texto en la posición indicada
+spinbox.configure(state="readonly")  # solo lectura (flechas activas)
+spinbox.configure(state="disabled")  # deshabilitado total
+```
+
+**Argumentos:**
+
+```python
+tk.Spinbox(
+    app,
+    textvariable=var,                # variable vinculada — usa textvariable, NO variable
+    from_=0,                         # valor mínimo del rango numérico
+    to=10,                           # valor máximo del rango numérico
+    increment=1,                     # cuánto sube/baja al pulsar las flechas
+    values=("a", "b", "c"),          # lista de opciones (excluye from_/to)
+    wrap=False,                      # True → al llegar al máximo vuelve al mínimo
+    width=10,                        # ancho del campo en caracteres
+    state="normal",                  # "normal", "disabled", "readonly"
+    command=mi_funcion,              # función al pulsar las flechas (no al escribir)
+    format="%.2f",                   # formato numérico ("%.2f" = 2 decimales)
+    justify="right",                 # alineación: "left", "right", "center"
+    buttonbackground="lightgray",    # color de fondo de las flechas arriba/abajo
+    insertbackground="black",        # color del cursor de texto al escribir
+    readonlybackground="lightyellow",# color de fondo cuando state="readonly"
+)
+```
+
+---
+
+### Combobox
+
+Un Combobox combina una entrada de texto con una lista desplegable de opciones. Pertenece al submódulo `ttk`.
+
+**Sintaxis básica:**
+
+```python
+from tkinter import ttk
+
+ttk.Combobox(contenedor, opciones...)
+```
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+from tkinter import ttk
+
+app = tk.Tk()
+
+paises = ttk.Combobox(app)
+paises['values'] = ('España', 'Portugal', 'Francia')
+paises.pack()
+
+app.mainloop()
+```
+
+**Opciones:**
+
+```python
+ttk.Combobox(contenedor, values=('Opción 1', 'Opción 2', 'Opción 3'))
+ttk.Combobox(contenedor, state='readonly')          # obliga a elegir de la lista
+ttk.Combobox(contenedor, textvariable=nombreVar)    # vincula a tk.StringVar()
+ttk.Combobox(contenedor, height=15)                 # máximo de filas visibles al desplegar
+```
+
+**Métodos:**
+
+```python
+combo.current(0)          # selecciona el elemento en el índice indicado
+combo.set("Hola Mundo")   # cambia el texto del cuadro
+texto = combo.get()       # devuelve el texto seleccionado o escrito
+
+# Heredados de tk.Entry:
+combo.delete(0, tk.END)
+combo.insert(0, "texto")
+combo.selection_clear()
+```
+
+---
+
+### Progressbar
+
+Progressbar da feedback visual al usuario sobre el progreso de una acción. Pertenece al submódulo `ttk`.
+
+Hay dos modos:
+- **determinate** — la barra avanza de 0% a 100% de forma controlada (cuando se sabe cuánto tardará).
+- **indeterminate** — un bloque se mueve de lado a lado (cuando no se sabe cuánto tardará).
+
+**Sintaxis básica:**
+
+```python
+nombreProgressbar = ttk.Progressbar(contenedor, opciones…)
+```
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+from tkinter import ttk
+
+app = tk.Tk()
+
+barra = ttk.Progressbar(app, mode='indeterminate')
+barra.pack()
+barra.start()
+
+app.mainloop()
+```
+
+**Opciones:**
+
+```python
+ttk.Progressbar(contenedor, mode='indeterminate')   # "determinate" o "indeterminate"
+ttk.Progressbar(contenedor, orient='vertical')      # "horizontal" o "vertical"
+ttk.Progressbar(contenedor, length=300)             # tamaño de la barra en píxeles
+ttk.Progressbar(contenedor, maximum=100)            # unidades que representan el 100%
+ttk.Progressbar(contenedor, variable=nombreIntVar)  # vincula a tk.IntVar()
+```
+
+**Métodos:**
+
+```python
+barra.step(5)     # incrementa el valor en la cantidad indicada (por defecto 1.0)
+barra.start(50)   # inicia la animación; parámetro = intervalo en milisegundos
+barra.stop()      # detiene la animación y reinicia el valor a 0
+```
+
+---
+
+### Text
+
+El widget Text crea campos de entrada multilineales. Es mejor opción que Entry para textos largos como comentarios o descripciones.
+
+**Sintaxis básica:**
+
+```python
+nombreText = tk.Text(contenedor, opciones…)
+```
+
+Los índices usan el formato `fila.columna` (ej: `"1.0"` = fila 1, columna 0).
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+texto = tk.Text(app)
+texto.insert('1.0', 'Texto de prueba')
+texto.pack()
+
+app.mainloop()
+```
+
+**Opciones:**
+
+```python
+tk.Text(contenedor, width=40)    # ancho en caracteres (por defecto 80)
+tk.Text(contenedor, height=10)   # alto en líneas (por defecto 24)
+tk.Text(app, wrap='word')        # "word" (corta por palabra), "char" (por letra), "none" (sin corte)
+```
+
+**Métodos:**
+
+```python
+nombreText.insert("1.0", "Texto inicial")        # inserta texto en el índice (fila.columna)
+todo_el_texto = nombreText.get("1.0", tk.END)    # lee todo el contenido
+nombreText.delete("1.0", tk.END)                 # borra todo el contenido
+```
+
+---
+
+### Listbox
+
+El Listbox muestra una lista de opciones seleccionables. Permite seleccionar uno o varios elementos e insertar o borrar dinámicamente.
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+lista_de_la_compra = tk.Listbox(app)
+lista_de_la_compra.pack()
+lista_de_la_compra.insert(tk.END, 'pan', 'huevo', 'leche')
+
+app.mainloop()
+```
+
+**Métodos:**
+
+```python
+lista.activate(index)                    # foco visual en el elemento (sin seleccionarlo)
+lista.curselection()                     # devuelve el índice del elemento seleccionado
+lista.delete(0, tk.END)                  # borra elementos del rango indicado
+lista.get(0, tk.END)                     # obtiene el texto de uno o varios elementos
+lista.index(index)                       # convierte palabras clave de Tkinter en número de índice
+lista.insert(tk.END, "Elemento")         # agrega un elemento en la posición indicada
+lista.itemcget(index, option)            # consulta la configuración visual de un elemento
+lista.itemconfigure(index, bg="yellow")  # modifica el diseño visual de un elemento
+lista.see(index)                         # hace scroll hasta el índice indicado
+```
+
+---
+
+### Scrollbar
+
+La Scrollbar funciona mediante un sistema de comunicación bidireccional con el widget que controla (por ejemplo una Listbox).
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+
+barra = tk.Scrollbar(app)
+barra.pack(side=tk.RIGHT, fill=tk.Y)
+
+lista = tk.Listbox(app, yscrollcommand=barra.set)
+lista.pack(side=tk.LEFT)
+
+barra.config(command=lista.yview)
+
+for i in range(100):
+    lista.insert(tk.END, i)
+
+app.mainloop()
+```
+
+**Parámetros:**
+
+```python
+tk.Scrollbar(
+    app,
+    orient=tk.VERTICAL,      # tk.VERTICAL o tk.HORIZONTAL
+    command=lista.yview,      # conecta la barra al widget
+    width=15,                 # grosor de la barra en píxeles
+)
+```
+
+**Métodos:**
+
+```python
+scrollbar.set(first, last)   # actualiza la posición del indicador (lo usa el widget automáticamente)
+scrollbar.get()              # devuelve la posición actual como tupla de fracciones (0.0 a 1.0)
+```
+
+---
+
+### Toplevel
+
+El Toplevel crea una segunda ventana flotante independiente de la principal.
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+
+app = tk.Tk()
+app.title('Ventana Principal')
+
+ventana_nueva = tk.Toplevel(app)
+ventana_nueva.title("Ventana Secundaria")
+
+app.mainloop()
+```
+
+Al ser una ventana, posee los mismos parámetros y métodos que la ventana principal.
+
+**Métodos:**
+
+```python
+ventana.title("Nuevo título")    # establece el título de la ventana
+ventana.geometry("800x600")      # establece las dimensiones
+ventana.destroy()                # cierra la ventana definitivamente
+ventana.grab_set()               # bloquea la ventana de atrás hasta que se cierre esta
+```
+
+---
+
+## 3. Gestores de Geometría
+
+En Tkinter, un gestor de geometría sirve para organizar, posicionar y colocar los widgets dentro de la ventana o frame. Hay tres tipos:
+
+### pack()
+
+El más básico. Apila widgets en bloques de forma secuencial.
+
+```python
+widget.pack(
+    side=tk.TOP,     # tk.TOP (por defecto), tk.BOTTOM, tk.LEFT, tk.RIGHT
+    fill=tk.NONE,    # tk.X, tk.Y, tk.BOTH, tk.NONE
+    expand=True,     # True → el widget ocupa todo el espacio libre disponible
+    padx=10,         # separación horizontal en píxeles
+    pady=5,          # separación vertical en píxeles
+)
+```
+
+### grid()
+
+El más potente y utilizado. Organiza los widgets por filas y columnas (empezando en 0).
+
+```python
+widget.grid(
+    row=0,           # número de fila
+    column=1,        # número de columna
+    sticky="nsew",   # alineación dentro de la celda: N, S, E, W (o combinaciones)
+    rowspan=2,       # cuántas filas ocupa el widget
+    columnspan=3,    # cuántas columnas ocupa el widget
+    padx=10,         # separación horizontal
+    pady=5,          # separación vertical
+)
+```
+
+### place()
+
+Control total por coordenadas de píxeles. El origen (0, 0) está en la esquina superior izquierda.
+
+```python
+# Posicionamiento absoluto — fijan el widget en una posición concreta
+widget.place(
+    x=50,            # distancia desde el borde izquierdo
+    y=100,           # distancia desde el borde superior
+    width=200,       # ancho exacto en píxeles
+    height=50,       # alto exacto en píxeles
+)
+
+# Posicionamiento relativo — valores de 0.0 a 1.0, proporcionales al tamaño de la ventana
+widget.place(
+    relx=0.5,        # posición horizontal relativa al ancho de la ventana
+    rely=0.5,        # posición vertical relativa al alto de la ventana
+    relwidth=0.8,    # ancho proporcional al tamaño de la ventana
+    relheight=0.1,   # alto proporcional al tamaño de la ventana
+    anchor=tk.CENTER # punto del widget que se engancha en la coordenada indicada
+                     # tk.N, tk.S, tk.E, tk.W, tk.CENTER
+)
+```
+
+---
+
+## 4. Orientación a Objetos
+
+Cuando la aplicación crece, la mejor práctica es usar **POO** heredando de `tk.Tk`.
+
+**Puntos clave:**
+
+- `class MiApp(tk.Tk)` — la clase se convierte en la ventana principal, no necesitas `app = tk.Tk()`.
+- `super().__init__()` — obligatorio en la primera línea del constructor. Inicializa la ventana de Tkinter.
+- `self` reemplaza a la variable `app` o `ventana` como contenedor.
+- Usa `self.nombre_widget` si necesitas acceder al widget desde otro método; si no, una variable local es suficiente.
+
+**Ejemplo:**
+
+```python
+import tkinter as tk
+from tkinter import ttk
+
+class Aplicacion(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
+        self.entrada = ttk.Entry(self)
+        self.entrada.pack()
+
+        boton = ttk.Button(self, text="Obtener texto", command=self.mostrar)
+        boton.pack()
+
+    def mostrar(self):
+        print(self.entrada.get())
+
+app = Aplicacion()
+app.mainloop()
+```
